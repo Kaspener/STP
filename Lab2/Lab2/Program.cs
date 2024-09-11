@@ -37,8 +37,9 @@ namespace Lab2
                     }
                 }
             }
-
-            return found ? product : 0;
+            if (!found)
+                product = 0;
+            return product;
         }
 
         public static double FindMinOnAndBelowMainDiagonal(double[,] A)
