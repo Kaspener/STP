@@ -1,5 +1,6 @@
 #include "UANumber.h"
 #include <cmath>
+#include <numeric>
 
 TANumber::~TANumber() = default;
 
@@ -518,12 +519,6 @@ bool TComplex::operator==(const TANumber& B) const noexcept
 	return m_actual == pB->m_actual && m_imaginary == pB->m_imaginary;
 }
 
-bool TComplex::operator!=(const TANumber& B) const noexcept
-{
-	const TComplex* pB = dynamic_cast<const TComplex*>(&B);
-	return !(this == pB);
-}
-
 void TComplex::updateStringRepresentation()
 {
 	std::string result;
@@ -546,4 +541,166 @@ void TComplex::updateStringRepresentation()
 		result += std::to_string(std::fabs(m_imaginary));
 
 	m_numberStringRepresentation = result;
+}
+
+TFrac::TFrac()
+{
+	m_numerator = 0;
+	m_denominator = 1;
+	m_numberStringRepresentation = "0/1";
+}
+
+TFrac::TFrac(long long numerator, long long denumirator)
+{
+	if (denumirator == 0) {
+		throw DivisionByZeroException();
+	}
+	long long gcd = std::gcd(numerator, denumirator);
+	m_numerator = numerator / gcd;
+	m_denominator = denumirator / gcd;
+	if (m_denominator < 0) {
+		m_numerator = -m_numerator;
+		denumirator = -m_denominator;
+	}
+	m_numberStringRepresentation = std::to_string(m_numerator) + "/" + std::to_string(m_denominator);
+}
+
+TFrac::TFrac(const std::string& number)
+{
+	setNumber(number);
+
+}
+
+void TFrac::setNumber(const std::string& number)
+{
+	size_t pos = number.find("/");
+	if (pos == std::string::npos ) {
+		throw FracNumberParseException("Invalid fraction number format: " + number);
+	}
+	long long numerator;
+	long long denominator;
+	try {
+		numerator = std::stoll(number.substr(0, pos));
+		denominator = std::stoll(number.substr(pos + 1));
+	}
+	catch (const std::exception&) {
+		throw FracNumberParseException("Error parsing the number: " + number);
+	}
+	if (denominator == 0) {
+		throw DivisionByZeroException();
+	}
+	long long gcd = std::gcd(numerator, denominator);
+	m_numerator = numerator / gcd;
+	m_denominator = denominator / gcd;
+	if (m_denominator < 0) {
+		m_numerator = -m_numerator;
+		m_denominator = -m_denominator;
+	}
+	m_numberStringRepresentation = std::to_string(m_numerator) + "/" + std::to_string(m_denominator);
+}
+
+std::unique_ptr<TANumber> TFrac::Clone() const noexcept
+{
+	return std::make_unique<TFrac>(*this);
+}
+
+bool TFrac::isNull() const noexcept
+{
+	return m_numerator == 0;
+}
+
+std::unique_ptr<TANumber> TFrac::Invert() const
+{
+	if (m_numerator == 0) {
+		throw DivisionByZeroException();
+	}
+	return std::make_unique<TFrac>(m_denominator, m_numerator);
+}
+
+std::unique_ptr<TANumber> TFrac::Square() const noexcept
+{
+	return std::make_unique<TFrac>(m_numerator * m_numerator, m_denominator * m_denominator);
+}
+
+TANumber& TFrac::operator=(const TANumber& B)
+{
+	const TFrac* pB = dynamic_cast<const TFrac*>(&B);
+	if (!pB) {
+		throw TypeMismatchException();
+	}
+	m_numerator = pB->m_numerator;
+	m_denominator = pB->m_denominator;
+	m_numberStringRepresentation = pB->m_numberStringRepresentation;
+
+	return *this;
+}
+
+std::unique_ptr<TANumber> TFrac::operator+(const TANumber& B) const
+{
+	const TFrac* fracB = dynamic_cast<const TFrac*>(&B);
+	if (!fracB)
+	{
+		throw TypeMismatchException();
+	}
+
+	long long commonDenom = std::lcm(m_denominator, fracB->m_denominator);
+	long long newNumerator = m_numerator * (commonDenom / m_denominator) +
+		fracB->m_numerator * (commonDenom / fracB->m_denominator);
+
+	return std::make_unique<TFrac>(newNumerator, commonDenom);
+}
+
+std::unique_ptr<TANumber> TFrac::operator-(const TANumber& B) const
+{
+	const TFrac* fracB = dynamic_cast<const TFrac*>(&B);
+	if (!fracB)
+	{
+		throw TypeMismatchException();
+	}
+
+	long long commonDenom = std::lcm(m_denominator, fracB->m_denominator);
+	long long newNumerator = m_numerator * (commonDenom / m_denominator) -
+		fracB->m_numerator * (commonDenom / fracB->m_denominator);
+
+	return std::make_unique<TFrac>(newNumerator, commonDenom);
+}
+
+std::unique_ptr<TANumber> TFrac::operator*(const TANumber& B) const
+{
+	const TFrac* fracB = dynamic_cast<const TFrac*>(&B);
+	if (!fracB)
+	{
+		throw TypeMismatchException();
+	}
+	long long gcd1 = std::gcd(m_numerator, fracB->m_denominator);
+	long long gcd2 = std::gcd(fracB->m_numerator, m_denominator);
+	return std::make_unique<TFrac>((m_numerator/gcd1) * (fracB->m_numerator/gcd2), (m_denominator/gcd2) * (fracB->m_denominator/gcd1));
+}
+
+std::unique_ptr<TANumber> TFrac::operator/(const TANumber& B) const
+{
+	const TFrac* fracB = dynamic_cast<const TFrac*>(&B);
+	if (!fracB)
+	{
+		throw TypeMismatchException();
+	}
+	if (fracB->m_numerator == 0)
+	{
+		throw DivisionByZeroException();
+	}
+	long long gcd1 = std::gcd(m_numerator, fracB->m_numerator);
+	long long gcd2 = std::gcd(m_denominator, fracB->m_denominator);
+	return std::make_unique<TFrac>((m_numerator / gcd1) * (fracB->m_denominator / gcd2), (m_denominator / gcd2) * (fracB->m_numerator / gcd1));
+}
+
+std::unique_ptr<TANumber> TFrac::operator-() const noexcept
+{
+	return std::make_unique<TFrac>(-m_numerator, m_denominator);
+}
+
+bool TFrac::operator==(const TANumber& B) const noexcept
+{
+	const TFrac* pB = dynamic_cast<const TFrac*>(&B);
+	if (!pB) return false;
+	return (m_numerator == pB->m_numerator && m_denominator == pB->m_denominator);
 }

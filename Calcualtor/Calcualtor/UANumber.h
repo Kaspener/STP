@@ -106,7 +106,7 @@ public:
 	std::unique_ptr<TANumber> operator / (const TANumber& B) const override;
 	std::unique_ptr<TANumber> operator -() const noexcept override;
 	bool operator ==(const TANumber& B) const noexcept override;
-	bool operator !=(const TANumber& B) const noexcept override;
+	bool operator !=(const TANumber& B) const noexcept override { return !operator==(B); }
 
 private:
 	double m_actual;
@@ -119,5 +119,34 @@ private:
 class TFrac : public TANumber
 {
 public:
+	TFrac();
+	TFrac(long long numerator, long long denumirator);
+	TFrac(const std::string& number);
 	virtual ~TFrac() = default;
+
+	void setNumber(const std::string& number) override;
+
+	long long getNumerator() const noexcept { return m_numerator; }
+	long long getDenominator() const noexcept { return m_denominator; }
+
+	std::unique_ptr<TANumber> Clone() const noexcept override;
+
+	bool isNull() const noexcept override;
+	std::unique_ptr<TANumber> Invert() const override;
+	std::unique_ptr<TANumber> Square() const noexcept override;
+
+	TANumber& operator = (const TANumber& B) override;
+	std::unique_ptr<TANumber> operator + (const TANumber& B) const override;
+	std::unique_ptr<TANumber> operator - (const TANumber& B) const override;
+	std::unique_ptr<TANumber> operator * (const TANumber& B) const override;
+	std::unique_ptr<TANumber> operator / (const TANumber& B) const override;
+	std::unique_ptr<TANumber> operator -() const noexcept override;
+	bool operator<(const TFrac& other) const noexcept { return (m_numerator * other.m_denominator) < (other.m_numerator * m_denominator); }
+	bool operator ==(const TFrac& other) const noexcept { return m_numerator == other.m_numerator && m_denominator == other.m_denominator; }
+	bool operator ==(const TANumber& B) const noexcept override;
+	bool operator !=(const TANumber& B) const noexcept override { return !operator==(B); }
+
+private:
+	long long m_numerator;
+	long long m_denominator;
 };

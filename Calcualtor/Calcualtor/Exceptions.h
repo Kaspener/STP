@@ -44,6 +44,11 @@ public:
     ComplexNumberParseException(const std::string& message) : std::invalid_argument(message) {}
 };
 
+class FracNumberParseException : public std::invalid_argument {
+public:
+    FracNumberParseException(const std::string& message) : std::invalid_argument(message) {}
+};
+
 class NegativPowerException : public std::invalid_argument {
 public:
     NegativPowerException() : std::invalid_argument("Exponent must be non-negative") {}

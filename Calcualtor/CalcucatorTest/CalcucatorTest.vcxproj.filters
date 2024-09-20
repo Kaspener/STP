@@ -18,10 +18,13 @@
     <ClCompile Include="CalcucatorTest.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\Calcualtor\UAEditor.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
     <ClCompile Include="..\Calcualtor\UANumber.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\Calcualtor\UAEditor.cpp">
+    <ClCompile Include="..\Calcualtor\TPoly.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

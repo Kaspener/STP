@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <BrowseInformation>true</BrowseInformation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +133,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Exceptions.h" />
+    <ClInclude Include="TMember.h" />
+    <ClInclude Include="TPoly.h" />
+    <ClInclude Include="TSet.h" />
     <ClInclude Include="UAEditor.h" />
     <ClInclude Include="UANumber.h" />
     <ClInclude Include="UMemory.h" />
@@ -139,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TPoly.cpp" />
     <ClCompile Include="UAEditor.cpp" />
     <ClCompile Include="UANumber.cpp" />
   </ItemGroup>
