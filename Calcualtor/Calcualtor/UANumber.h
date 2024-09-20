@@ -17,6 +17,7 @@ public:
 	virtual bool isNull() const noexcept = 0;
 	virtual std::unique_ptr<TANumber> Invert() const = 0;
 	virtual std::unique_ptr<TANumber> Square() const noexcept = 0;
+	virtual std::unique_ptr<TANumber> Clone() const noexcept = 0;
 
 	virtual TANumber& operator = (const TANumber& B) = 0;
 	virtual std::unique_ptr<TANumber> operator + (const TANumber& B) const = 0;
@@ -34,6 +35,7 @@ protected:
 class TPNumber : public TANumber
 {
 public:
+	TPNumber();
 	TPNumber(double value, int base, int precision);
 	TPNumber(const std::string& value, const std::string& base, const std::string& precision);
 	virtual ~TPNumber() = default;
@@ -46,6 +48,7 @@ public:
 	bool isNull() const noexcept override { return m_number == 0.0; }
 	std::unique_ptr<TANumber> Invert() const override;
 	std::unique_ptr<TANumber> Square() const noexcept override;
+	std::unique_ptr<TANumber> Clone() const noexcept override;
 
 	TPNumber& operator = (const TANumber& B) override;
 	std::unique_ptr<TANumber> operator+ (const TANumber& B) const override;
@@ -90,6 +93,7 @@ public:
 	double AngleInDegrees() const noexcept;
 	std::unique_ptr<TANumber> Power(int n) const;
 	std::unique_ptr<TANumber> Sqrt() const;
+	std::unique_ptr<TANumber> Clone() const noexcept override;
 
 	bool isNull() const noexcept override;
 	std::unique_ptr<TANumber> Invert() const override;

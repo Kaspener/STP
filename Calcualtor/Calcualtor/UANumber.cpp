@@ -3,6 +3,11 @@
 
 TANumber::~TANumber() = default;
 
+TPNumber::TPNumber() : m_base(10), m_precision(2), m_number(0)
+{
+	m_numberStringRepresentation = std::string("0.00");
+}
+
 TPNumber::TPNumber(double value, int base, int precision)
 	: m_base(base), m_precision(precision) 
 {
@@ -68,6 +73,11 @@ std::unique_ptr<TANumber> TPNumber::Square() const noexcept
 {
 	double resultValue = m_number * m_number;
 	return std::make_unique<TPNumber>(resultValue, m_base, m_precision);
+}
+
+std::unique_ptr<TANumber> TPNumber::Clone() const noexcept
+{
+	return std::make_unique<TPNumber>(*this);
 }
 
 TPNumber& TPNumber::operator=(const TANumber& B)
@@ -405,6 +415,11 @@ std::unique_ptr<TANumber> TComplex::Sqrt() const {
 	return std::make_unique<TComplex>(realPart, imaginaryPart);
 }
 
+std::unique_ptr<TANumber> TComplex::Clone() const noexcept
+{
+	return std::make_unique<TComplex>(*this);
+}
+
 bool TComplex::isNull() const noexcept
 {
 	return (m_actual == 0.0 && m_imaginary == 0.0);
@@ -414,7 +429,7 @@ std::unique_ptr<TANumber> TComplex::Invert() const
 {
 	double denominator = m_actual * m_actual + m_imaginary * m_imaginary;
 	if (std::abs(denominator) < 1e-9) {
-		throw ComplexNumberParseException("Cannot invert zero complex number.");
+		throw DivisionByZeroException();
 	}
 	double realPart = m_actual / denominator;
 	double imaginaryPart = -m_imaginary / denominator;
@@ -442,6 +457,17 @@ TANumber& TComplex::operator=(const TANumber& B)
 	return *this;
 }
 
+std::unique_ptr<TANumber> TComplex::operator-(const TANumber& B) const
+{
+	const TComplex* pB = dynamic_cast<const TComplex*>(&B);
+	if (!pB)
+	{
+		throw TypeMismatchException();
+	}
+
+	return std::make_unique<TComplex>(m_actual - pB->m_actual, m_imaginary - pB->m_imaginary);
+}
+
 std::unique_ptr<TANumber> TComplex::operator+(const TANumber& B) const
 {
 
@@ -452,17 +478,6 @@ std::unique_ptr<TANumber> TComplex::operator+(const TANumber& B) const
 	}
 
 	return std::make_unique<TComplex>(m_actual + pB->m_actual, m_imaginary + pB->m_imaginary);
-}
-
-std::unique_ptr<TANumber> TComplex::operator-(const TANumber& B) const
-{
-	const TComplex* pB = dynamic_cast<const TComplex*>(&B);
-	if (!pB)
-	{
-		throw TypeMismatchException();
-	}
-
-	return std::make_unique<TComplex>(m_actual - pB->m_actual, m_imaginary - pB->m_imaginary);
 }
 
 std::unique_ptr<TANumber> TComplex::operator*(const TANumber& B) const

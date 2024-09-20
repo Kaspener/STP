@@ -1,5 +1,7 @@
 #include "CppUnitTest.h"
 #include "../Calcualtor/UAEditor.h"
+#include "../Calcualtor/UMemory.h"
+#include "../Calcualtor/UProcssr.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -260,7 +262,7 @@ namespace CalcucatorTest
         TEST_METHOD(InvertZero)
         {
             TComplex complex(0, 0);
-            Assert::ExpectException<ComplexNumberParseException>([&] {complex.Invert(); });
+            Assert::ExpectException<DivisionByZeroException>([&] {complex.Invert(); });
         }
 
         TEST_METHOD(SquareZero)
@@ -446,6 +448,170 @@ namespace CalcucatorTest
             CEditor editor("5 + i * 3.");
             editor.changeEditMode();
             Assert::AreEqual(std::string("5 + i * 3."), editor.addNumberSeparator());
+        }
+    };
+
+    TEST_CLASS(MemoryTest)
+    {
+    public:
+
+        TEST_METHOD(TestWriteAndTake)
+        {
+            TMemory<TComplex> memory;
+            TComplex complexNumber(5, 13);
+
+            memory.write(complexNumber);
+            auto result = memory.take();
+
+            TComplex* resultComplex = dynamic_cast<TComplex*>(result.get());
+            Assert::IsNotNull(resultComplex);
+            Assert::AreEqual(5.0, resultComplex->getActual());
+            Assert::AreEqual(13.0, resultComplex->getImaginary());
+        }
+
+        TEST_METHOD(TestAdd)
+        {
+            TMemory<TComplex> memory;
+            std::unique_ptr<TANumber> complexNumber1 = std::make_unique<TComplex>(3, 4);
+            std::unique_ptr<TANumber> complexNumber2 = std::make_unique<TComplex>(1, 2);
+
+            memory.write(complexNumber1);
+            memory+=*complexNumber2;
+            std::unique_ptr<TANumber> result = memory.take();
+
+            TComplex* resultComplex = dynamic_cast<TComplex*>(result.get());
+            Assert::IsNotNull(resultComplex);
+            Assert::AreEqual(4.0, resultComplex->getActual());
+            Assert::AreEqual(6.0, resultComplex->getImaginary());
+        }
+
+        TEST_METHOD(TestClear)
+        {
+            TMemory<TComplex> memory;
+            TComplex complexNumber(5, 13);
+
+            memory.write(complexNumber);
+            memory.clear();
+            auto result = memory.take();
+
+            TComplex* resultComplex = dynamic_cast<TComplex*>(result.get());
+            Assert::IsNotNull(resultComplex);
+            Assert::AreEqual(0.0, resultComplex->getActual());
+            Assert::AreEqual(0.0, resultComplex->getImaginary());
+        }
+    };
+
+    TEST_CLASS(TProcTests)
+    {
+    public:
+
+        TEST_METHOD(TestResetProc)
+        {
+            TProc<TComplex> processor;
+
+            processor.resetProc();
+
+            Assert::IsTrue(processor.getLeftOperand() != nullptr);
+            Assert::IsTrue(processor.getRightOperand() != nullptr);
+            Assert::AreEqual(static_cast<int>(TProc<TComplex>::None), static_cast<int>(processor.getOperation()));
+        }
+
+        TEST_METHOD(TestSetLeftOperand)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> complexNumber = std::make_unique<TComplex>(1, 1);
+
+            processor.setLeftOperand(complexNumber);
+
+            Assert::AreEqual(complexNumber->numberString(), processor.getLeftOperand()->numberString());
+        }
+
+        TEST_METHOD(TestSetRightOperand)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> complexNumber = std::make_unique<TComplex>(2, 2);
+
+            processor.setRightOperand(complexNumber);
+
+            Assert::AreEqual(complexNumber->numberString(), processor.getRightOperand()->numberString());
+        }
+
+        TEST_METHOD(TestAdditionOperation)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> leftNumber = std::make_unique<TComplex>(1, 1);
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(2, 2);
+            processor.setLeftOperand(leftNumber);
+            processor.setRightOperand(rightNumber);
+            processor.setOperation(TProc<TComplex>::Add);
+
+            processor.doOperation();
+
+            Assert::AreEqual(TComplex(3, 3).numberString(), processor.getLeftOperand()->numberString());
+        }
+
+        TEST_METHOD(TestSubtractionOperation)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> leftNumber = std::make_unique<TComplex>(5, 5);
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(2, 2);
+            processor.setLeftOperand(leftNumber);
+            processor.setRightOperand(rightNumber);
+            processor.setOperation(TProc<TComplex>::Sub);
+
+            processor.doOperation();
+
+            Assert::AreEqual(TComplex(3, 3).numberString(), processor.getLeftOperand()->numberString());
+        }
+
+        TEST_METHOD(TestMultiplicationOperation)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> leftNumber = std::make_unique<TComplex>(1, 1);
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(2, 2);
+            processor.setLeftOperand(leftNumber);
+            processor.setRightOperand(rightNumber);
+            processor.setOperation(TProc<TComplex>::Mul);
+
+            processor.doOperation();
+
+            Assert::AreEqual(TComplex(0, 4).numberString(), processor.getLeftOperand()->numberString());
+        }
+
+        TEST_METHOD(TestDivisionOperation)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> leftNumber = std::make_unique<TComplex>(1, 1);
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(1, -1);
+            processor.setLeftOperand(leftNumber);
+            processor.setRightOperand(rightNumber);
+            processor.setOperation(TProc<TComplex>::Div);
+
+            processor.doOperation();
+
+            Assert::AreEqual(TComplex(0, 1).numberString(), processor.getLeftOperand()->numberString());
+        }
+
+        TEST_METHOD(TestSquareFunction)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(2, 3);
+            processor.setRightOperand(rightNumber);
+
+            processor.doFunction(TProc<TComplex>::Sqr);
+
+            Assert::AreEqual(TComplex(-5, 12).numberString(), processor.getRightOperand()->numberString());
+        }
+
+        TEST_METHOD(TestInvertFunction)
+        {
+            TProc<TComplex> processor;
+            std::unique_ptr<TANumber> rightNumber = std::make_unique<TComplex>(2, 3);
+            processor.setRightOperand(rightNumber);
+
+            processor.doFunction(TProc<TComplex>::Rev);
+
+            Assert::AreEqual(TComplex(0.153846, -0.230769).numberString(), processor.getRightOperand()->numberString());
         }
     };
 }
